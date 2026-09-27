@@ -22,10 +22,12 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
-    - name: Build
+    - name: Build esplay-s3 only
       uses: docker/build-push-action@v6
       with:
         context: .
+        build-args: |
+          TARGET=esplay-s3
         tags: retro-go:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
@@ -33,10 +35,14 @@ jobs:
 
     - name: Extract binaries from docker image
       run: |
-        docker run --rm -v $(pwd)/build:/build retro-go:latest sh -c "cp /app/*.fw /build"
+        mkdir -p $(pwd)/build
+        docker run --rm -v $(pwd)/build:/build retro-go:latest sh -c "cp /app/*esplay-s3* /build 2>/dev/null || cp /app/* /build 2>/dev/null || true; ls -la /build"
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: binaries
-        path: build/*.fw
+        name: esplay-s3-firmware
+        path: |
+          build/*.img
+          build/*.bin
+          build/*.fw
